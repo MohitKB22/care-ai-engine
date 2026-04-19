@@ -1,71 +1,116 @@
-# Healthcare RAG Chatbot — Streamlit
+# Healthcare RAG Chatbot — Ollama (No API Key Required)
 
-A RAG-powered healthcare chatbot built with Streamlit and the Anthropic Claude API.
+A fully local RAG-powered healthcare chatbot using **Streamlit** + **Ollama**.  
+No API key, no internet connection needed after setup, completely free.
 
-## Features
+---
 
-- 4 Knowledge Bases: General Health, Diabetes, Cardiovascular, Mental Health
-- Emergency Detection: intercepts life-threatening queries before any API call
-- 3 Response Modes: Safe & Cautious · Detailed Explanation · Simple Language
-- Multi-turn Memory: last 6 exchanges sent with every request
-- Context Grounding: active KB context injected as RAG retrieval into every prompt
-- Quick Chips: one-click example questions per KB
+## Requirements
+
+- Python 3.9+
+- [Ollama](https://ollama.com) installed on your machine
+
+---
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Install Ollama
+
+Download and install from **https://ollama.com/download**
+
+### 2. Pull a model
+
+```bash
+# Recommended (fast, good quality, ~2GB)
+ollama pull llama3.2
+
+# Lighter option (~1GB, faster on low-RAM machines)
+ollama pull llama3.2:1b
+
+# More capable option (~4.7GB)
+ollama pull llama3.1:8b
+
+# Medical-focused (optional)
+ollama pull medllama2
+```
+
+### 3. Start Ollama
+
+```bash
+ollama serve
+```
+
+> Ollama runs on `http://localhost:11434` by default.
+
+### 4. Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Run the app
+### 5. Run the app
 
 ```bash
 streamlit run app.py
 ```
 
-### 3. Enter your API key
+Open your browser at **http://localhost:8501**
 
-Enter your Anthropic API key (`sk-ant-...`) in the sidebar when the app loads.  
-Get one at: https://console.anthropic.com
+---
 
-## Optional: Real FAISS Retrieval Backend
+## Features
 
-The original project includes a FastAPI + FAISS backend (`retriever.py`).  
-To use real semantic retrieval:
+| Feature | Details |
+|---|---|
+| 🔒 100% Local | No data leaves your machine |
+| 🆓 Free | No API key, no account needed |
+| 🩺 4 Knowledge Bases | General Health, Diabetes, Cardiovascular, Mental Health |
+| 🚨 Emergency Detection | Intercepts life-threatening queries before LLM call |
+| 🔄 3 Response Modes | Safe & Cautious · Detailed Explanation · Simple Language |
+| 🧠 Multi-turn Memory | Last 6 exchanges sent with every request |
+| ⚡ Quick Chips | One-click example questions per KB |
+| 🤖 Model Selector | Switch between any locally pulled Ollama model |
 
-### Install backend dependencies
+---
 
-```bash
-pip install fastapi uvicorn faiss-cpu sentence-transformers
-```
+## Recommended Models
 
-### Run the retrieval server
+| Model | Size | Best For |
+|---|---|---|
+| `llama3.2` | ~2GB | Best balance of speed and quality |
+| `llama3.2:1b` | ~1GB | Low-RAM machines |
+| `llama3.1:8b` | ~4.7GB | More detailed answers |
+| `mistral` | ~4GB | Alternative quality model |
+| `phi3` | ~2.3GB | Fast, lightweight |
 
-```bash
-uvicorn retriever:app --reload --port 8000
-```
+---
 
-### Connect to Streamlit
+## Troubleshooting
 
-In `app.py`, replace the static `kb_data['context']` in `call_anthropic()` with:
+**Ollama not detected?**
+- Make sure Ollama is installed and running: `ollama serve`
+- Check it's accessible: `curl http://localhost:11434/api/tags`
 
-```python
-import requests
-res = requests.get(f"http://localhost:8000/retrieve", params={"kb": st.session_state.active_kb, "q": user_query, "top_k": 5})
-context = res.json()["context"]
-```
+**No models found?**
+- Pull a model first: `ollama pull llama3.2`
 
-## Security Notes
+**Response too slow?**
+- Use a smaller model like `llama3.2:1b`
+- Close other heavy applications to free up RAM
 
-- Never commit your API key to version control.
-- For production, use environment variables or Streamlit secrets:
-  ```toml
-  # .streamlit/secrets.toml
-  ANTHROPIC_API_KEY = "sk-ant-..."
-  ```
-  Then access with `st.secrets["ANTHROPIC_API_KEY"]` in `app.py`.
+**Port conflict?**
+- If port 11434 is in use, set `OLLAMA_HOST=0.0.0.0:11435` before `ollama serve`
+- Update `OLLAMA_URL` in `app.py` to match
+
+---
+
+## Security & Privacy
+
+- All processing is local — no queries or responses leave your machine.
+- No API keys, no accounts, no telemetry from this app.
+- Ollama itself may have its own telemetry settings (see Ollama docs).
+
+---
 
 ## License
 
